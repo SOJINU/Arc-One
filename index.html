@@ -20,6 +20,9 @@
   --ease-out:cubic-bezier(0.16,1,0.3,1);
   --ease-io:cubic-bezier(0.4,0,0.2,1);
 }
+
+body,#nav,.pc,.xc,.stats-bar,.cmp,.cta-lnks .clink{transition:background .35s ease,border-color .35s ease,color .35s ease}
+
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
 body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-weight:400;line-height:1.6;overflow-x:hidden;min-height:100vh}
@@ -356,7 +359,6 @@ body::after{
   .sbi{grid-template-columns:repeat(3,1fr)}
   .sbc:nth-child(n+4){display:none}
   .nav-links{display:none}
-  .cmd-btn{display:none}
 }
 @media(max-width:560px){
   .pgrid{grid-template-columns:1fr}
@@ -383,9 +385,8 @@ body::after{
     <button class="nl" onclick="document.getElementById('guide').scrollIntoView({behavior:'smooth'})">Arc Guide</button>
   </div>
   <div class="nav-r">
-    <div class="cmd-btn" onclick="openCmd()">Search<kbd>⌘K</kbd></div>
     <a href="https://x.com/arc?s=20" target="_blank" rel="noopener" class="nl" style="text-decoration:none">Twitter</a>
-    <a href="https://docs.arc.network" target="_blank" rel="noopener" class="btn-doc">Docs ↗</a>
+<a href="https://docs.arc.network" target="_blank" rel="noopener" class="btn-doc">Docs ↗</a>
   </div>
 </nav>
 
@@ -976,6 +977,8 @@ document.addEventListener('keydown',e=>{
   if((e.metaKey||e.ctrlKey)&&e.key==='k'){e.preventDefault();cmdOpen?closeCmd():openCmd()}
   if(e.key==='Escape'&&cmdOpen)closeCmd();
 });
+
+
 
 /* ── LOGO FALLBACK ───────────────────── */
 document.querySelectorAll('.plog img').forEach(img=>{
