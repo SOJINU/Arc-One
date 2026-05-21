@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Arc One — The Operating System of Programmable Money</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+/* ── TOKENS ─────────────────────────────────── */
+:root{
+  --bg:#030308;--bg2:#07070f;--surface:#0e0e18;--s2:#13131f;--s3:#1a1a28;
+  --border:rgba(255,255,255,0.055);--b2:rgba(255,255,255,0.1);--b3:rgba(255,255,255,0.18);
+  --text:#f4f4f8;--muted:#5a5a7a;--dim:#2e2e45;
+  --orange:#F7931A;--burnt:#EA580C;--gold:#FFD600;
+  --blue:#3B82F6;--violet:#8B5CF6;--crimson:#DC2626;--teal:#0D9488;--lime:#84CC16;
+  --ease-spring:cubic-bezier(0.34,1.56,0.64,1);
+  --ease-out:cubic-bezier(0.16,1,0.3,1);
+  --ease-io:cubic-bezier(0.4,0,0.2,1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-weight:400;line-height:1.6;overflow-x:hidden;min-height:100vh}
+::selection{background:rgba(247,147,26,0.22);color:#fff}
+a{text-decoration:none;color:inherit}
+button{font-family:'Inter',sans-serif;cursor:pointer;border:none;background:none}
+
+/* ── NOISE GRAIN ─────────────────────────────── */
+body::after{
+  content:'';position:fixed;inset:0;z-index:999;pointer-events:none;
+  opacity:.018;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.88' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ── NAV ─────────────────────────────────────── */
+#nav{
+  position:fixed;top:0;left:0;right:0;z-index:300;
+  height:66px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 44px;
+  transition:background .5s,border-color .5s;
+}
+#nav.scrolled{
+  background:rgba(3,3,8,0.85);
+  backdrop-filter:blur(28px) saturate(160%);
+  -webkit-backdrop-filter:blur(28px) saturate(160%);
+  border-bottom:1px solid var(--border);
+}
+.nav-l{display:flex;align-items:center;gap:14px}
+.nav-mark{
+  width:30px;height:30px;border-radius:8px;
+  background:linear-gradient(140deg,var(--burnt),var(--orange));
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 0 16px -2px rgba(247,147,26,0.6);flex-shrink:0;
+}
+.nav-mark svg{width:14px;height:14px}
+.nav-brand{font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:600;color:var(--text);letter-spacing:-.03em}
+.nav-sep{width:1px;height:18px;background:var(--border)}
+.live-pill{
+  display:flex;align-items:center;gap:6px;
+  font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--orange);
+  padding:4px 11px;border-radius:100px;
+  border:1px solid rgba(247,147,26,0.28);background:rgba(247,147,26,0.06);
+  letter-spacing:.05em;
+}
+.pdot{position:relative;width:6px;height:6px}
+.pdot span{position:absolute;inset:0;border-radius:50%;background:var(--orange);display:block}
+.pdot .pr{animation:pring 2.2s ease-in-out infinite}
+@keyframes pring{0%{transform:scale(1);opacity:1}75%,100%{transform:scale(2.4);opacity:0}}
+.nav-links{display:flex;align-items:center;gap:2px}
+.nl{font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--muted);padding:7px 14px;border-radius:100px;cursor:pointer;letter-spacing:.02em;transition:color .2s,background .2s}
+.nl:hover{color:var(--text);background:rgba(255,255,255,0.045)}
+.nav-r{display:flex;align-items:center;gap:10px}
+.cmd-btn{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,0.025);cursor:pointer;display:flex;align-items:center;gap:6px;transition:all .2s;letter-spacing:.03em}
+.cmd-btn:hover{border-color:var(--b2);color:var(--text);background:rgba(255,255,255,0.055)}
+.cmd-btn kbd{font-size:10px;opacity:.55}
+.btn-doc{font-family:'Inter',sans-serif;font-size:12px;font-weight:700;padding:9px 22px;border-radius:100px;background:linear-gradient(to right,var(--burnt),var(--orange));color:#fff;letter-spacing:.05em;text-transform:uppercase;box-shadow:0 0 18px -4px rgba(234,88,12,0.5);transition:all .3s;cursor:pointer;text-decoration:none;display:inline-block}
+.btn-doc:hover{transform:scale(1.05);box-shadow:0 0 28px -4px rgba(247,147,26,0.62)}
+
+/* ── HERO ────────────────────────────────────── */
+#hero{position:relative;width:100%;height:100svh;min-height:700px;overflow:hidden;display:flex;align-items:flex-end}
+#hcanvas{position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:none}
+
+/* animated atmospheric background blobs */
+.blob{position:absolute;border-radius:50%;pointer-events:none}
+.blob-core{
+  width:500px;height:700px;
+  background:radial-gradient(ellipse,rgba(247,147,26,0.07) 0%,rgba(247,147,26,0.02) 50%,transparent 70%);
+  top:5%;left:50%;transform:translateX(-50%);
+  animation:blobCore 9s ease-in-out infinite;z-index:2;filter:blur(40px);
+}
+@keyframes blobCore{0%,100%{opacity:.8;transform:translateX(-50%) scaleY(1)}50%{opacity:1;transform:translateX(-50%) scaleY(1.08)}}
+.blob-l{
+  width:350px;height:500px;
+  background:radial-gradient(ellipse,rgba(59,130,246,0.035) 0%,transparent 65%);
+  top:20%;left:-5%;
+  animation:blobL 13s ease-in-out infinite 2s;z-index:2;filter:blur(60px);
+}
+@keyframes blobL{0%,100%{transform:translate(0,0)}50%{transform:translate(30px,-20px)}}
+.blob-r{
+  width:300px;height:400px;
+  background:radial-gradient(ellipse,rgba(139,92,246,0.03) 0%,transparent 65%);
+  top:30%;right:-5%;
+  animation:blobR 11s ease-in-out infinite 1s;z-index:2;filter:blur(60px);
+}
+@keyframes blobR{0%,100%{transform:translate(0,0)}50%{transform:translate(-20px,30px)}}
+
+/* fog layers */
+.fog-lo{position:absolute;bottom:0;left:0;right:0;height:300px;background:linear-gradient(to top,rgba(3,3,8,0.98) 0%,rgba(3,3,8,0.7) 45%,transparent 100%);z-index:5;pointer-events:none}
+.fog-glow{position:absolute;bottom:0;left:0;right:0;height:200px;background:radial-gradient(ellipse 60% 80% at 50% 100%,rgba(247,147,26,0.04) 0%,transparent 100%);z-index:5;pointer-events:none}
+
+/* monolith positioning */
+.monolith-wrap{
+  position:absolute;
+  top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  z-index:3;pointer-events:none;
+  display:flex;align-items:center;justify-content:center;
+}
+#msv{
+  width:min(280px,40vw);height:auto;
+  filter:drop-shadow(0 0 32px rgba(247,147,26,0.25));
+  animation:monoPulse 7s ease-in-out infinite;
+}
+@keyframes monoPulse{0%,100%{filter:drop-shadow(0 0 28px rgba(247,147,26,0.2))}50%{filter:drop-shadow(0 0 52px rgba(247,147,26,0.45))}}
+
+/* SVG scan line */
+.sl{animation:slDown 10s ease-in-out infinite 4s}
+@keyframes slDown{
+  0%{transform:translateY(0);opacity:0}
+  4%{opacity:.4}
+  94%{opacity:.4}
+  100%{transform:translateY(615px);opacity:0}
+}
+
+/* hero content — lower portion */
+.hero-content{
+  position:relative;z-index:10;
+  width:100%;max-width:1200px;margin:0 auto;
+  padding:0 44px 9vh;
+  display:flex;align-items:flex-end;justify-content:space-between;gap:40px;
+}
+.hero-title-block{}
+.hero-tag{font-family:'JetBrains Mono',monospace;font-size:10px;color:rgba(247,147,26,0.7);letter-spacing:.14em;text-transform:uppercase;display:flex;align-items:center;gap:9px;margin-bottom:12px;opacity:0;animation:suUp .8s var(--ease-out) .2s forwards}
+.hero-tag::before{content:'';width:22px;height:1px;background:linear-gradient(to right,transparent,var(--orange))}
+.hero-h1{font-family:'Space Grotesk',sans-serif;font-weight:700;line-height:.87;letter-spacing:-.01em}
+.h1-arc{display:block;font-size:clamp(72px,13vw,180px);color:var(--text);letter-spacing:.04em;opacity:0;animation:suUp .9s var(--ease-out) .35s forwards}
+.h1-one{display:block;font-size:clamp(72px,13vw,180px);background:linear-gradient(105deg,var(--orange) 0%,var(--gold) 55%,var(--orange) 100%);background-size:200% auto;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:.04em;margin-left:.14em;animation:suUp .9s var(--ease-out) .48s forwards,goldShift 6s linear 1.5s infinite;opacity:0}
+@keyframes goldShift{0%{background-position:0% center}100%{background-position:200% center}}
+
+.hero-right{max-width:360px;flex-shrink:0;opacity:0;animation:suUp .9s var(--ease-out) .7s forwards}
+.hero-right-inner{border-left:1px solid var(--border);padding-left:28px}
+.hero-desc{font-size:15px;color:var(--muted);line-height:1.72;margin-bottom:28px;font-weight:400}
+.hero-ctas{display:flex;gap:10px;flex-wrap:wrap}
+.btn-hero{font-family:'Inter',sans-serif;font-size:12px;font-weight:700;padding:13px 28px;border-radius:100px;letter-spacing:.06em;text-transform:uppercase;display:inline-flex;align-items:center;gap:7px;cursor:pointer;transition:all .3s}
+.btn-hp{background:linear-gradient(to right,var(--burnt),var(--orange));color:#fff;border:none;box-shadow:0 0 22px -5px rgba(234,88,12,0.52)}
+.btn-hp:hover{transform:translateY(-2px);box-shadow:0 8px 28px -5px rgba(247,147,26,0.55)}
+.btn-ho{background:rgba(255,255,255,0.04);border:1px solid var(--border);color:var(--muted)}
+.btn-ho:hover{border-color:var(--b2);color:var(--text);background:rgba(255,255,255,0.07)}
+
+.scroll-hint{position:absolute;bottom:5vh;left:50%;transform:translateX(-50%);z-index:10;display:flex;flex-direction:column;align-items:center;gap:7px;opacity:0;animation:suUp .8s var(--ease-out) 1.4s forwards}
+.sh-line{width:1px;height:42px;background:linear-gradient(to bottom,var(--orange),transparent)}
+.sh-txt{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--dim);letter-spacing:.14em;text-transform:uppercase}
+
+@keyframes suUp{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── STATS BAR ───────────────────────────────── */
+.stats-bar{border-top:1px solid var(--border);border-bottom:1px solid var(--border);background:linear-gradient(to right,var(--bg),rgba(14,14,24,0.7),var(--bg));padding:22px 0;position:relative;overflow:hidden}
+.stats-bar::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 40% 200% at 50% 50%,rgba(247,147,26,0.035),transparent);pointer-events:none}
+.sbi{display:grid;grid-template-columns:repeat(5,1fr);max-width:1200px;margin:0 auto;padding:0 44px}
+.sbc{display:flex;flex-direction:column;align-items:center;padding:0 20px;border-right:1px solid var(--border)}
+.sbc:last-child{border-right:none}
+.sbc-v{font-family:'Space Grotesk',sans-serif;font-size:26px;font-weight:700;letter-spacing:-.04em;line-height:1;margin-bottom:4px}
+.sbc-v.grad{background:linear-gradient(to right,var(--orange),var(--gold));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.sbc-l{font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--muted);letter-spacing:.07em;text-transform:uppercase}
+
+/* ── SECTION ─────────────────────────────────── */
+.wrap{max-width:1200px;margin:0 auto;padding:0 44px}
+.sec-ey{display:flex;align-items:center;justify-content:center;gap:10px;font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:500;color:var(--orange);letter-spacing:.1em;text-transform:uppercase;margin-bottom:16px}
+.sec-ey::before,.sec-ey::after{content:'';flex:1;max-width:38px;height:1px}
+.sec-ey::before{background:linear-gradient(to right,transparent,var(--orange))}
+.sec-ey::after{background:linear-gradient(to left,transparent,var(--orange))}
+.sec-h{font-family:'Space Grotesk',sans-serif;font-size:clamp(34px,4.5vw,58px);font-weight:700;letter-spacing:-.04em;line-height:.95;color:var(--text);text-align:center;margin-bottom:14px}
+.sec-h .gr{background:linear-gradient(to right,var(--orange),var(--gold));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.sec-p{font-size:15px;color:var(--muted);text-align:center;max-width:440px;margin:0 auto;line-height:1.7}
+
+/* ── PROJECTS ────────────────────────────────── */
+.psec{padding:110px 0;background:var(--bg)}
+.filter-row{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:28px}
+.chips{display:flex;gap:5px;flex-wrap:wrap}
+.chip{font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:500;letter-spacing:.04em;padding:6px 15px;border-radius:100px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;transition:all .2s}
+.chip:hover{border-color:var(--b2);color:var(--text)}
+.chip.on{background:linear-gradient(to right,var(--burnt),var(--orange));border-color:transparent;color:#fff;font-weight:700;box-shadow:0 0 16px -3px rgba(234,88,12,0.48)}
+.sw{position:relative;display:flex;align-items:center}
+.si{position:absolute;left:0;font-size:14px;color:var(--dim);pointer-events:none}
+.sinp{font-family:'JetBrains Mono',monospace;font-size:11.5px;padding:9px 14px 9px 22px;background:transparent;border:none;border-bottom:2px solid var(--border);color:var(--text);width:200px;outline:none;transition:all .2s;caret-color:var(--orange)}
+.sinp:focus{border-bottom-color:var(--orange);box-shadow:0 8px 18px -10px rgba(247,147,26,0.25)}
+.sinp::placeholder{color:var(--dim)}
+.ctxt{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--dim);letter-spacing:.06em;text-transform:uppercase;margin-bottom:18px}
+.ctxt span{color:var(--orange)}
+
+/* ── PROJECT GRID ────────────────────────────── */
+.pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+
+/* ── CARD ────────────────────────────────────── */
+.pc{
+  position:relative;overflow:hidden;
+  background:linear-gradient(150deg,rgba(18,18,28,0.96),rgba(11,11,20,0.99));
+  border:1px solid var(--border);border-radius:16px;
+  padding:20px;cursor:pointer;text-decoration:none;color:inherit;
+  display:flex;flex-direction:column;
+  transition:border-color .22s,box-shadow .22s,transform .22s var(--ease-spring);
+  opacity:0;animation:suUp .5s var(--ease-out) forwards;
+}
+.pc::before{content:'';position:absolute;top:0;left:20%;right:20%;height:1px;background:linear-gradient(to right,transparent,var(--cc,rgba(247,147,26,0.6)),transparent);opacity:0;transition:opacity .28s}
+.pc::after{content:'';position:absolute;inset:0;border-radius:16px;background:radial-gradient(circle at var(--mx,50%) var(--my,0%),rgba(255,255,255,0.035) 0%,transparent 55%);opacity:0;transition:opacity .28s;pointer-events:none}
+.pc:hover{transform:translateY(-4px);border-color:var(--cb,rgba(247,147,26,0.28));box-shadow:0 20px 48px -12px var(--cg,rgba(247,147,26,0.18))}
+.pc:hover::before,.pc:hover::after{opacity:1}
+.pc.wide{grid-column:span 2}
+.pc[data-c="dex"]{--cc:rgba(59,130,246,0.6);--cb:rgba(59,130,246,0.28);--cg:rgba(59,130,246,0.18)}
+.pc[data-c="payments"]{--cc:rgba(13,148,136,0.6);--cb:rgba(13,148,136,0.28);--cg:rgba(13,148,136,0.18)}
+.pc[data-c="infra"]{--cc:rgba(245,158,11,0.6);--cb:rgba(245,158,11,0.28);--cg:rgba(245,158,11,0.18)}
+.pc[data-c="tools"]{--cc:rgba(132,204,22,0.6);--cb:rgba(132,204,22,0.28);--cg:rgba(132,204,22,0.18)}
+.pc[data-c="nft"]{--cc:rgba(139,92,246,0.6);--cb:rgba(139,92,246,0.28);--cg:rgba(139,92,246,0.18)}
+.pc[data-c="gaming"]{--cc:rgba(220,38,38,0.6);--cb:rgba(220,38,38,0.28);--cg:rgba(220,38,38,0.18)}
+.pc[data-c="community"]{--cc:rgba(56,189,248,0.6);--cb:rgba(56,189,248,0.28);--cg:rgba(56,189,248,0.18)}
+.pc:nth-child(1){animation-delay:.04s}.pc:nth-child(2){animation-delay:.08s}.pc:nth-child(3){animation-delay:.12s}
+.pc:nth-child(4){animation-delay:.16s}.pc:nth-child(5){animation-delay:.20s}.pc:nth-child(6){animation-delay:.24s}
+.pc:nth-child(7){animation-delay:.28s}.pc:nth-child(8){animation-delay:.32s}.pc:nth-child(9){animation-delay:.36s}
+.pc:nth-child(10){animation-delay:.40s}.pc:nth-child(11){animation-delay:.44s}.pc:nth-child(12){animation-delay:.48s}
+.pc:nth-child(13){animation-delay:.52s}.pc:nth-child(14){animation-delay:.56s}.pc:nth-child(15){animation-delay:.60s}
+.pc.hide{display:none!important}
+.pct{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px}
+.plog{width:44px;height:44px;border-radius:11px;overflow:hidden;background:rgba(255,255,255,0.04);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.plog img{width:100%;height:100%;object-fit:cover}
+.plog .init{font-family:'Space Grotesk',sans-serif;font-size:12px;font-weight:700;color:var(--muted);display:none}
+.parr{width:28px;height:28px;border-radius:7px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--dim);font-size:13px;transition:all .2s var(--ease-spring);flex-shrink:0}
+.pc:hover .parr{border-color:var(--cb,rgba(247,147,26,0.4));color:var(--cc,var(--orange));transform:translate(2px,-2px)}
+.pn{font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:600;color:var(--text);letter-spacing:-.025em;margin-bottom:7px;line-height:1.15}
+.pc.wide .pn{font-size:22px}
+.pd{font-size:12.5px;color:var(--muted);line-height:1.65;flex:1;margin-bottom:16px}
+.pf{display:flex;align-items:center;justify-content:space-between;padding-top:12px;border-top:1px solid var(--border);margin-top:auto}
+.tag{font-family:'JetBrains Mono',monospace;font-size:9.5px;font-weight:500;letter-spacing:.07em;text-transform:uppercase;padding:3px 9px;border-radius:6px;border:1px solid}
+.tdex{color:#60a5fa;border-color:rgba(96,165,250,.25);background:rgba(96,165,250,.07)}
+.tpay{color:#2dd4bf;border-color:rgba(45,212,191,.25);background:rgba(45,212,191,.07)}
+.tinf{color:#f59e0b;border-color:rgba(245,158,11,.25);background:rgba(245,158,11,.07)}
+.ttoo{color:#a3e635;border-color:rgba(163,230,53,.25);background:rgba(163,230,53,.07)}
+.tnft{color:#a78bfa;border-color:rgba(167,139,250,.25);background:rgba(167,139,250,.07)}
+.tgam{color:#f87171;border-color:rgba(248,113,113,.25);background:rgba(248,113,113,.07)}
+.tcom{color:#38bdf8;border-color:rgba(56,189,248,.25);background:rgba(56,189,248,.07)}
+.pdom{font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--dim);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;max-width:54%}
+.egrid{grid-column:1/-1;text-align:center;padding:70px 0;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--dim)}
+
+/* ── GUIDE ───────────────────────────────────── */
+.gsec{padding:110px 0;background:linear-gradient(to bottom,var(--bg),var(--bg2) 50%,var(--bg));position:relative;overflow:hidden}
+.gsec::before{content:'';position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:700px;height:700px;border-radius:50%;background:radial-gradient(circle,rgba(247,147,26,0.035) 0%,transparent 60%);pointer-events:none}
+.gfil{display:flex;gap:5px;flex-wrap:wrap;justify-content:center;margin-bottom:40px}
+.ggrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.xc{position:relative;overflow:hidden;background:linear-gradient(150deg,rgba(16,16,26,0.96),rgba(9,9,18,0.99));border:1px solid var(--border);border-radius:16px;padding:20px;cursor:pointer;text-decoration:none;color:inherit;display:flex;flex-direction:column;gap:13px;transition:all .22s;opacity:0;transform:translateY(14px)}
+.xc.in{opacity:1!important;transform:translateY(0)!important}
+.xc::before{content:'';position:absolute;top:0;left:15%;right:15%;height:1px;background:linear-gradient(to right,transparent,rgba(247,147,26,0.7),transparent);opacity:0;transition:opacity .28s}
+.xc:hover{border-color:rgba(247,147,26,0.28);box-shadow:0 20px 48px -12px rgba(247,147,26,0.14);transform:translateY(-3px)}
+.xc:hover::before{opacity:1}
+.xc.wide{grid-column:span 2}
+.xca{display:flex;align-items:center;gap:10px}
+.xcav{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--burnt),var(--orange));display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:700;color:#fff;flex-shrink:0;border:1.5px solid rgba(247,147,26,0.22)}
+.xci{flex:1;min-width:0}
+.xcn{font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:600;color:var(--text)}
+.xch{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);margin-top:1px;letter-spacing:.02em}
+.xxt{font-size:12.5px;color:rgba(255,255,255,0.72);line-height:1.65;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+.xtpc{font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:3px 9px;border-radius:100px;border:1px solid;width:fit-content}
+.ts{color:var(--orange);border-color:rgba(247,147,26,.28);background:rgba(247,147,26,.07)}
+.td{color:#60a5fa;border-color:rgba(96,165,250,.28);background:rgba(96,165,250,.07)}
+.tt{color:#2dd4bf;border-color:rgba(45,212,191,.28);background:rgba(45,212,191,.07)}
+.ti{color:#a78bfa;border-color:rgba(167,139,250,.28);background:rgba(167,139,250,.07)}
+.ta{color:#f87171;border-color:rgba(248,113,113,.28);background:rgba(248,113,113,.07)}
+.tn{color:#a3e635;border-color:rgba(163,230,53,.28);background:rgba(163,230,53,.07)}
+.xcft{display:flex;align-items:center;justify-content:space-between;padding-top:12px;border-top:1px solid var(--border);margin-top:auto}
+.xcst{display:flex;gap:12px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:.03em}
+.vx{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--orange);padding:4px 10px;border-radius:100px;border:1px solid rgba(247,147,26,.22);background:rgba(247,147,26,.06);cursor:pointer;transition:all .2s;text-decoration:none;display:inline-block;letter-spacing:.04em}
+.vx:hover{background:rgba(247,147,26,.15);border-color:rgba(247,147,26,.5)}
+.ph{border-style:dashed;border-color:rgba(255,255,255,0.055);background:rgba(247,147,26,0.018);min-height:190px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;text-align:center;opacity:1!important;transform:none!important}
+.ph-ic{font-size:22px;opacity:.18}
+.ph-tx{font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--dim);letter-spacing:.06em}
+
+/* ── CTA ─────────────────────────────────────── */
+.ctasec{padding:110px 0;background:var(--bg);position:relative;overflow:hidden;text-align:center}
+.ctasec::before{content:'';position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:900px;height:500px;border-radius:50%;background:radial-gradient(ellipse,rgba(247,147,26,0.055) 0%,transparent 60%);pointer-events:none}
+.cta-h{font-family:'Space Grotesk',sans-serif;font-size:clamp(38px,5vw,66px);font-weight:700;letter-spacing:-.04em;line-height:.95;color:var(--text);margin-bottom:18px;position:relative;z-index:2}
+.cta-h .gr{background:linear-gradient(to right,var(--orange),var(--gold));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.cta-p{font-size:15px;color:var(--muted);margin-bottom:36px;line-height:1.72;position:relative;z-index:2}
+.cta-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:52px;position:relative;z-index:2}
+.cta-lnks{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;max-width:700px;margin:0 auto;position:relative;z-index:2}
+.clink{background:rgba(14,14,24,0.85);border:1px solid var(--border);border-radius:13px;padding:14px 16px;display:flex;align-items:center;gap:10px;text-align:left;text-decoration:none;color:inherit;transition:all .22s;cursor:pointer}
+.clink:hover{border-color:var(--b2);background:rgba(18,18,28,0.95);transform:translateY(-2px)}
+.clink-tt{font-family:'Space Grotesk',sans-serif;font-size:12px;font-weight:600;color:var(--text)}
+.clink-sb{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);margin-top:1px;letter-spacing:.02em}
+
+/* ── FOOTER ──────────────────────────────────── */
+.fwrap{max-width:1240px;margin:0 auto;padding:0 44px}
+.finner{border-top:1px solid var(--border);padding:30px 0;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.fl{display:flex;align-items:center;gap:10px}
+.fm{width:24px;height:24px;border-radius:6px;background:linear-gradient(135deg,var(--burnt),var(--orange));display:flex;align-items:center;justify-content:center}
+.fm svg{width:11px;height:11px}
+.fb{font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:600;color:var(--text);letter-spacing:-.02em}
+.fc{font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--muted);letter-spacing:.03em;margin-top:2px}
+.flinks{display:flex;gap:18px}
+.flnk{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--muted);letter-spacing:.04em;transition:color .2s}
+.flnk:hover{color:var(--orange)}
+
+/* ── CMD MENU ────────────────────────────────── */
+#cmo{position:fixed;inset:0;z-index:500;background:rgba(0,0,0,0.72);backdrop-filter:blur(16px);display:none;align-items:flex-start;justify-content:center;padding-top:15vh}
+#cmo.open{display:flex;animation:fadeIn .15s ease}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.cmp{background:rgba(13,13,22,0.99);border:1px solid var(--b2);border-radius:18px;width:100%;max-width:540px;overflow:hidden;box-shadow:0 40px 80px -12px rgba(0,0,0,0.65);animation:cmIn .2s var(--ease-out)}
+@keyframes cmIn{from{opacity:0;transform:translateY(-10px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+.cmsh{display:flex;align-items:center;gap:11px;padding:17px 20px;border-bottom:1px solid var(--border)}
+.cmsi{font-size:15px;color:var(--muted);flex-shrink:0}
+#cmi{flex:1;background:transparent;border:none;outline:none;font-family:'Inter',sans-serif;font-size:15px;font-weight:400;color:var(--text);caret-color:var(--orange)}
+#cmi::placeholder{color:var(--dim)}
+.cmbd{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--dim);padding:3px 7px;border-radius:5px;border:1px solid var(--border);background:rgba(255,255,255,0.025);letter-spacing:.04em}
+.cmrs{padding:7px;max-height:360px;overflow-y:auto}
+.cmsl{font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--dim);letter-spacing:.08em;text-transform:uppercase;padding:8px 11px 4px}
+.cmi-row{display:flex;align-items:center;gap:11px;padding:9px 11px;border-radius:9px;cursor:pointer;transition:background .14s;color:var(--text);text-decoration:none}
+.cmi-row:hover{background:rgba(247,147,26,0.09)}
+.cmi-ic{width:28px;height:28px;border-radius:7px;background:rgba(255,255,255,0.04);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.cmi-n{font-size:13px;font-weight:500;color:var(--text)}
+.cmi-s{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);margin-top:1px;letter-spacing:.02em}
+.cmi-ar{margin-left:auto;font-size:11px;color:var(--dim)}
+.cmft{padding:9px 18px;border-top:1px solid var(--border);display:flex;align-items:center;gap:14px;font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--dim)}
+.cmft kbd{background:rgba(255,255,255,0.06);border:1px solid var(--border);border-radius:4px;padding:2px 5px;font-size:9px;font-family:'JetBrains Mono',monospace;letter-spacing:.02em}
+
+/* ── REVEAL ──────────────────────────────────── */
+.reveal{opacity:0;transform:translateY(18px);transition:opacity .7s var(--ease-out),transform .7s var(--ease-out)}
+.reveal.in{opacity:1;transform:translateY(0)}
+
+/* ── RESPONSIVE ──────────────────────────────── */
+@media(max-width:1024px){
+  .monolith-wrap{display:none}
+  .blob-core,.blob-l,.blob-r{display:none}
+  .hero-content{grid-template-columns:1fr;flex-direction:column;align-items:flex-start}
+  .hero-right{max-width:100%}
+  .hero-right-inner{border-left:none;border-top:1px solid var(--border);padding-left:0;padding-top:24px}
+}
+@media(max-width:900px){
+  .pgrid{grid-template-columns:repeat(2,1fr)}
+  .pc.wide{grid-column:span 2}
+  .ggrid{grid-template-columns:repeat(2,1fr)}
+  .xc.wide{grid-column:span 2}
+  .wrap,.sbi{padding:0 22px}
+  #nav{padding:0 22px}
+  .hero-content{padding:0 22px 9vh}
+  .fwrap{padding:0 22px}
+  .cta-lnks{grid-template-columns:repeat(2,1fr)}
+  .sbi{grid-template-columns:repeat(3,1fr)}
+  .sbc:nth-child(n+4){display:none}
+  .nav-links{display:none}
+  .cmd-btn{display:none}
+}
+@media(max-width:560px){
+  .pgrid{grid-template-columns:1fr}
+  .pc.wide{grid-column:1}
+  .ggrid{grid-template-columns:1fr}
+  .xc.wide{grid-column:1}
+  .hero-ctas{flex-direction:column;align-items:flex-start}
+  .cta-lnks{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- ── NAV ────────────────────────────────────────────── -->
+<nav id="nav">
+  <div class="nav-l">
+    <div class="nav-mark"><svg viewBox="0 0 14 14" fill="none"><polygon points="7,1.5 13,12 1,12" fill="white"/></svg></div>
+    <span class="nav-brand" style="font-family:'Space Grotesk',sans-serif">Arc One</span>
+    <div class="nav-sep"></div>
+
+  </div>
+  <div class="nav-links">
+    <button class="nl" onclick="document.getElementById('projects').scrollIntoView({behavior:'smooth'})">Projects</button>
+    <button class="nl" onclick="document.getElementById('guide').scrollIntoView({behavior:'smooth'})">Arc Guide</button>
+  </div>
+  <div class="nav-r">
+    <div class="cmd-btn" onclick="openCmd()">Search<kbd>⌘K</kbd></div>
+    <a href="https://x.com/arc?s=20" target="_blank" rel="noopener" class="nl" style="text-decoration:none">Twitter</a>
+    <a href="https://docs.arc.network" target="_blank" rel="noopener" class="btn-doc">Docs ↗</a>
+  </div>
+</nav>
+
+<!-- ── HERO ───────────────────────────────────────────── -->
+<section id="hero">
+  <canvas id="hcanvas"></canvas>
+  <div class="blob blob-core"></div>
+  <div class="blob blob-l"></div>
+  <div class="blob blob-r"></div>
+
+  <!-- Monolith -->
+  <div class="monolith-wrap">
+    <svg id="msv" viewBox="0 0 400 780" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <defs>
+        <linearGradient id="mbody" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#160c02" stop-opacity=".96"/>
+          <stop offset="25%" stop-color="#0c0806" stop-opacity=".98"/>
+          <stop offset="100%" stop-color="#030305" stop-opacity=".99"/>
+        </linearGradient>
+        <linearGradient id="ledge" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#FFD600" stop-opacity="1"/>
+          <stop offset="12%" stop-color="#F7931A" stop-opacity=".92"/>
+          <stop offset="45%" stop-color="#c96020" stop-opacity=".48"/>
+          <stop offset="100%" stop-color="#F7931A" stop-opacity=".06"/>
+        </linearGradient>
+        <linearGradient id="redge" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#FFD600" stop-opacity="1"/>
+          <stop offset="12%" stop-color="#F7931A" stop-opacity=".92"/>
+          <stop offset="45%" stop-color="#c96020" stop-opacity=".48"/>
+          <stop offset="100%" stop-color="#F7931A" stop-opacity=".06"/>
+        </linearGradient>
+        <linearGradient id="tbeam" x1="0" y1="1" x2="0" y2="0">
+          <stop offset="0%" stop-color="#FFD600" stop-opacity=".28"/>
+          <stop offset="70%" stop-color="#F7931A" stop-opacity=".08"/>
+          <stop offset="100%" stop-color="#F7931A" stop-opacity="0"/>
+        </linearGradient>
+        <linearGradient id="bcone" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#F7931A" stop-opacity=".18"/>
+          <stop offset="100%" stop-color="#F7931A" stop-opacity="0"/>
+        </linearGradient>
+        <radialGradient id="ambi" cx="50%" cy="35%" r="55%">
+          <stop offset="0%" stop-color="#F7931A" stop-opacity=".075"/>
+          <stop offset="70%" stop-color="#F7931A" stop-opacity=".015"/>
+          <stop offset="100%" stop-color="#F7931A" stop-opacity="0"/>
+        </radialGradient>
+        <radialGradient id="gnd" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#F7931A" stop-opacity=".26"/>
+          <stop offset="65%" stop-color="#ea580c" stop-opacity=".06"/>
+          <stop offset="100%" stop-color="#F7931A" stop-opacity="0"/>
+        </radialGradient>
+        <radialGradient id="itop" cx="50%" cy="0%" r="90%">
+          <stop offset="0%" stop-color="#F7931A" stop-opacity=".1"/>
+          <stop offset="100%" stop-color="#F7931A" stop-opacity="0"/>
+        </radialGradient>
+        <filter id="g6"><feGaussianBlur in="SourceGraphic" stdDeviation="6" result="b"/><feComposite in="SourceGraphic" in2="b" operator="over"/></filter>
+        <filter id="g14"><feGaussianBlur in="SourceGraphic" stdDeviation="14" result="b"/><feComposite in="SourceGraphic" in2="b" operator="over"/></filter>
+        <filter id="g26"><feGaussianBlur in="SourceGraphic" stdDeviation="26" result="b"/><feComposite in="SourceGraphic" in2="b" operator="over"/></filter>
+        <filter id="h4"><feGaussianBlur stdDeviation="4"/></filter>
+        <filter id="h8"><feGaussianBlur stdDeviation="8"/></filter>
+        <path id="lep" d="M150,42 L150,648"/>
+        <path id="rep" d="M250,42 L250,648"/>
+      </defs>
+
+      <!-- Ambient glow behind monolith -->
+      <ellipse cx="200" cy="320" rx="220" ry="350" fill="url(#ambi)"/>
+
+      <!-- Top beam (upward) -->
+      <polygon points="200,42 130,0 270,0" fill="url(#tbeam)" opacity=".55" filter="url(#h8)"/>
+      <polygon points="200,42 148,0 252,0" fill="url(#tbeam)" opacity=".72"/>
+
+      <!-- Bottom cone -->
+      <polygon points="200,652 95,780 305,780" fill="url(#bcone)" opacity=".45" filter="url(#h8)"/>
+
+      <!-- Ground glow -->
+      <ellipse cx="200" cy="660" rx="165" ry="38" fill="url(#gnd)"/>
+      <ellipse cx="200" cy="660" rx="100" ry="22" fill="url(#gnd)" opacity=".7"/>
+
+      <!-- Monolith diffuse glow layer -->
+      <rect x="128" y="38" width="144" height="618" rx="2" fill="rgba(247,147,26,0.045)" filter="url(#h8)"/>
+
+      <!-- Monolith main body -->
+      <rect x="150" y="42" width="100" height="610" rx="1.5" fill="url(#mbody)"/>
+
+      <!-- Interior top glow -->
+      <rect x="150" y="42" width="100" height="150" rx="1.5" fill="url(#itop)"/>
+
+      <!-- Interior depth banding -->
+      <line x1="152" y1="150" x2="248" y2="150" stroke="rgba(247,147,26,0.045)" stroke-width="1"/>
+      <line x1="152" y1="250" x2="248" y2="250" stroke="rgba(247,147,26,0.032)" stroke-width="1"/>
+      <line x1="152" y1="360" x2="248" y2="360" stroke="rgba(247,147,26,0.028)" stroke-width="1"/>
+      <line x1="152" y1="480" x2="248" y2="480" stroke="rgba(247,147,26,0.028)" stroke-width="1"/>
+      <line x1="152" y1="580" x2="248" y2="580" stroke="rgba(247,147,26,0.035)" stroke-width="1"/>
+      <line x1="200" y1="42" x2="200" y2="652" stroke="rgba(247,147,26,0.022)" stroke-width="1"/>
+
+      <!-- Left edge diffuse -->
+      <rect x="142" y="42" width="12" height="610" rx="1" fill="rgba(247,147,26,0.13)" filter="url(#h4)"/>
+      <!-- Left edge line -->
+      <line x1="150" y1="42" x2="150" y2="652" stroke="url(#ledge)" stroke-width="1.5"/>
+      <line x1="150" y1="42" x2="150" y2="652" stroke="rgba(255,214,0,0.42)" stroke-width="1" filter="url(#g6)"/>
+
+      <!-- Right edge diffuse -->
+      <rect x="246" y="42" width="12" height="610" rx="1" fill="rgba(247,147,26,0.13)" filter="url(#h4)"/>
+      <!-- Right edge line -->
+      <line x1="250" y1="42" x2="250" y2="652" stroke="url(#redge)" stroke-width="1.5"/>
+      <line x1="250" y1="42" x2="250" y2="652" stroke="rgba(255,214,0,0.42)" stroke-width="1" filter="url(#g6)"/>
+
+      <!-- Top edge — brightest -->
+      <line x1="150" y1="42" x2="250" y2="42" stroke="#FFD600" stroke-width="2" filter="url(#g14)"/>
+      <line x1="150" y1="42" x2="250" y2="42" stroke="#FFD600" stroke-width="1.5"/>
+
+      <!-- Bottom edge -->
+      <line x1="150" y1="652" x2="250" y2="652" stroke="rgba(247,147,26,0.25)" stroke-width="1"/>
+
+      <!-- Corner precision marks TL -->
+      <line x1="144" y1="42" x2="144" y2="26" stroke="rgba(255,214,0,0.45)" stroke-width="1"/>
+      <line x1="144" y1="26" x2="162" y2="26" stroke="rgba(255,214,0,0.45)" stroke-width="1"/>
+      <!-- Corner precision marks TR -->
+      <line x1="256" y1="42" x2="256" y2="26" stroke="rgba(255,214,0,0.45)" stroke-width="1"/>
+      <line x1="238" y1="26" x2="256" y2="26" stroke="rgba(255,214,0,0.45)" stroke-width="1"/>
+      <!-- Corner precision marks BL -->
+      <line x1="144" y1="652" x2="144" y2="668" stroke="rgba(247,147,26,0.22)" stroke-width="1"/>
+      <line x1="144" y1="668" x2="162" y2="668" stroke="rgba(247,147,26,0.22)" stroke-width="1"/>
+      <!-- Corner precision marks BR -->
+      <line x1="256" y1="652" x2="256" y2="668" stroke="rgba(247,147,26,0.22)" stroke-width="1"/>
+      <line x1="238" y1="668" x2="256" y2="668" stroke="rgba(247,147,26,0.22)" stroke-width="1"/>
+
+      <!-- Scan line (CSS animated) -->
+      <rect class="sl" x="152" y="42" width="96" height="1" fill="rgba(255,255,255,0.22)"/>
+
+      <!-- Edge stream particles — left -->
+      <circle r="1.8" fill="#FFD600" opacity=".0"><animateMotion dur="5s" begin="0s" repeatCount="indefinite"><mpath href="#lep"/></animateMotion><animate attributeName="opacity" values="0;0.75;0.75;0" dur="5s" repeatCount="indefinite"/></circle>
+      <circle r="1.4" fill="#F7931A" opacity=".0"><animateMotion dur="5s" begin="1.7s" repeatCount="indefinite"><mpath href="#lep"/></animateMotion><animate attributeName="opacity" values="0;0.55;0.55;0" dur="5s" begin="1.7s" repeatCount="indefinite"/></circle>
+      <circle r="1.2" fill="#FFD600" opacity=".0"><animateMotion dur="5s" begin="3.2s" repeatCount="indefinite"><mpath href="#lep"/></animateMotion><animate attributeName="opacity" values="0;0.4;0.4;0" dur="5s" begin="3.2s" repeatCount="indefinite"/></circle>
+
+      <!-- Edge stream particles — right -->
+      <circle r="1.8" fill="#FFD600" opacity=".0"><animateMotion dur="5s" begin=".8s" repeatCount="indefinite"><mpath href="#rep"/></animateMotion><animate attributeName="opacity" values="0;0.75;0.75;0" dur="5s" begin=".8s" repeatCount="indefinite"/></circle>
+      <circle r="1.4" fill="#F7931A" opacity=".0"><animateMotion dur="5s" begin="2.4s" repeatCount="indefinite"><mpath href="#rep"/></animateMotion><animate attributeName="opacity" values="0;0.55;0.55;0" dur="5s" begin="2.4s" repeatCount="indefinite"/></circle>
+      <circle r="1.2" fill="#FFD600" opacity=".0"><animateMotion dur="5s" begin="4.1s" repeatCount="indefinite"><mpath href="#rep"/></animateMotion><animate attributeName="opacity" values="0;0.4;0.4;0" dur="5s" begin="4.1s" repeatCount="indefinite"/></circle>
+
+      <!-- Floating data labels -->
+      <text x="82" y="180" fill="rgba(247,147,26,0.2)" font-size="9" font-family="JetBrains Mono,monospace" letter-spacing="2">USDC</text>
+      <line x1="110" y1="177" x2="147" y2="177" stroke="rgba(247,147,26,0.1)" stroke-width=".5"/>
+      <text x="80" y="270" fill="rgba(255,214,0,0.16)" font-size="8" font-family="JetBrains Mono,monospace">$0.01</text>
+      <line x1="112" y1="267" x2="147" y2="267" stroke="rgba(255,214,0,0.07)" stroke-width=".5"/>
+      <text x="260" y="200" fill="rgba(247,147,26,0.2)" font-size="9" font-family="JetBrains Mono,monospace" letter-spacing="2">EVM</text>
+      <line x1="253" y1="197" x2="290" y2="197" stroke="rgba(247,147,26,0.1)" stroke-width=".5" transform="scale(-1,1) translate(-540,0)"/>
+      <text x="263" y="290" fill="rgba(255,214,0,0.16)" font-size="8" font-family="JetBrains Mono,monospace">&lt;1s</text>
+
+      <!-- Pillar base -->
+      <rect x="140" y="654" width="120" height="8" rx="1.5" fill="rgba(247,147,26,0.14)"/>
+      <line x1="140" y1="654" x2="260" y2="654" stroke="rgba(247,147,26,0.32)" stroke-width=".75"/>
+
+      <!-- Ground threshold reflection -->
+      <line x1="100" y1="668" x2="300" y2="668" stroke="rgba(247,147,26,0.1)" stroke-width=".75"/>
+      <ellipse cx="200" cy="672" rx="140" ry="12" fill="rgba(247,147,26,0.06)" filter="url(#h4)"/>
+
+      <!-- Human silhouette -->
+      <g transform="translate(184,614)">
+        <ellipse cx="16" cy="62" rx="11" ry="3" fill="rgba(247,147,26,0.1)"/>
+        <rect x="12" y="44" width="5" height="18" rx="1.5" fill="rgba(255,255,255,0.08)"/>
+        <rect x="17.5" y="44" width="5" height="18" rx="1.5" fill="rgba(255,255,255,0.08)"/>
+        <rect x="9.5" y="23" width="13" height="22" rx="2.5" fill="rgba(255,255,255,0.11)"/>
+        <rect x="3" y="26" width="6" height="3" rx="1.5" fill="rgba(255,255,255,0.07)" transform="rotate(-18,6,27)"/>
+        <rect x="23" y="26" width="6" height="3" rx="1.5" fill="rgba(255,255,255,0.07)" transform="rotate(18,26,27)"/>
+        <circle cx="16" cy="13" r="9.5" fill="rgba(255,255,255,0.13)"/>
+        <circle cx="16" cy="13" r="9.5" fill="rgba(247,147,26,0.04)" filter="url(#h4)"/>
+      </g>
+    </svg>
+  </div>
+
+  <div class="fog-lo"></div>
+  <div class="fog-glow"></div>
+
+  <!-- Hero Text — lower portion -->
+  <div class="hero-content">
+    <div class="hero-title-block">
+      <div class="hero-tag">Arc Ecosystem</div>
+      <h1 class="hero-h1">
+        <span class="h1-arc">ARC</span>
+        <span class="h1-one">ONE</span>
+      </h1>
+    </div>
+    <div class="hero-right">
+      <div class="hero-right-inner">
+        <p class="hero-desc">The operating system of programmable money. 15 projects building the future of finance on Arc — Circle's stablecoin-native L1.</p>
+        <div class="hero-ctas">
+          <button class="btn-hero btn-hp mag-btn" onclick="document.getElementById('projects').scrollIntoView({behavior:'smooth'})">
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+            Explore projects
+          </button>
+          <a href="https://docs.arc.network" target="_blank" rel="noopener" class="btn-hero btn-ho">Read the docs</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="scroll-hint">
+    <div class="sh-line"></div>
+    <div class="sh-txt">scroll</div>
+  </div>
+</section>
+
+<!-- ── STATS BAR ───────────────────────────────────────── -->
+<div class="stats-bar">
+  <div class="sbi" style="display:grid">
+    <div class="sbc"><div class="sbc-v grad">15</div><div class="sbc-l">Projects live</div></div>
+    <div class="sbc"><div class="sbc-v grad">&lt;1s</div><div class="sbc-l">Finality</div></div>
+    <div class="sbc"><div class="sbc-v grad">$0.01</div><div class="sbc-l">Base fee</div></div>
+    <div class="sbc"><div class="sbc-v grad">80+</div><div class="sbc-l">Partners</div></div>
+    <div class="sbc"><div class="sbc-v">EVM</div><div class="sbc-l">Compatible</div></div>
+  </div>
+</div>
+
+<!-- ── PROJECTS ─────────────────────────────────────────── -->
+<section id="projects" class="psec">
+  <div class="wrap">
+    <div style="margin-bottom:56px" class="reveal">
+      <div class="sec-ey">Ecosystem directory</div>
+      <h2 class="sec-h">All <span class="gr">projects</span></h2>
+      <p class="sec-p" style="margin-top:12px">Every app, protocol and tool built by founders on Arc.</p>
+    </div>
+    <div class="filter-row reveal">
+      <div class="chips" id="chips">
+        <button class="chip on" onclick="setF('all',this)">All</button>
+        <button class="chip" onclick="setF('dex',this)">DEX · DeFi</button>
+        <button class="chip" onclick="setF('payments',this)">Payments</button>
+        <button class="chip" onclick="setF('infra',this)">Infrastructure</button>
+        <button class="chip" onclick="setF('tools',this)">Tools</button>
+        <button class="chip" onclick="setF('community',this)">Community</button>
+        <button class="chip" onclick="setF('gaming',this)">Gaming</button>
+        <button class="chip" onclick="setF('nft',this)">NFT</button>
+      </div>
+      <div class="sw">
+        <span class="si">⌕</span>
+        <input class="sinp" type="text" placeholder="Search…" oninput="setS(this.value)" autocomplete="off" aria-label="Search projects" id="ps">
+      </div>
+    </div>
+    <div class="ctxt"><span id="vc">15</span> projects</div>
+    <div class="pgrid" id="grid">
+      <a class="pc wide" data-c="dex" data-kw="unitflow finance dex liquidity ai agentic usdc" href="https://flowonarc.xyz" target="_blank" rel="noopener"><div class="pct"><div class="plog"><img src="https://www.google.com/s2/favicons?domain=unitflow.finance&sz=128" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><span class="init">UF</span></div><div class="parr">↗</div></div><div class="pn">UnitFlow Finance</div><div class="pd">The emerging liquidity hub of Arc. A full DEX with AI-driven automation for agentic commerce — trustless USDC agent pools, ERC-8004 compatible trading infrastructure, and reflection token routing for autonomous agents.</div><div class="pf"><span class="tag tdex">DEX · AI Agents</span><span class="pdom">flowonarc.xyz · @UnitFlowFinance</span></div></a>
+      <a class="pc" data-c="dex" data-kw="presto dex swap pool bridge nft" href="https://prestodex-arc.vercel.app" target="_blank" rel="noopener"><div class="pct"><div class="plog"><img src="https://www.google.com/s2/favicons?domain=prestodex-arc.vercel.app&sz=128" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><span class="init">PR</span></div><div class="parr">↗</div></div><div class="pn">Presto DEX</div><div class="pd">All-in-one DEX on Arc. Instant swaps, LP pools, CCTP V2 bridge, token & NFT deployment, and full portfolio tracking from one sidebar.</div><div class="pf"><span class="tag tdex">DEX</span><span class="pdom">prestodex-arc.vercel.app</span></div></a>
+      <a class="pc" data-c="dex" data-kw="achswap dex swap bridge prediction rwa gasless" href="https://trade.achswap.app" target="_blank" rel="noopener"><div class="pct"><div class="plog"><img src="https://www.google.com/s2/favicons?domain=trade.achswap.app&sz=128" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><span class="init">AS</span></div><div class="parr">↗</div></div><div class="pn">AchSwap</div><div class="pd">Arc's full-featured DEX — gasless swaps, V2/V3/CLMM pools, RWA flows, prediction markets, bridge, token launch, real-time analytics.</div><div class="pf"><span class="tag tdex">DEX · DeFi</span><span class="pdom">trade.achswap.app</span></div></a>
+      <a class="pc" data-c="dex" data-kw="tower exchange stablecoin dex aggregator ai" href="https://tower.exchange" target="_blank" rel="noopener"><div class="pct"><div class="plog"><img src="https://www.google.com/s2/favicons?domain=tower.exchange&sz=128" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><span class="init">TX</span></div><div class="parr">↗</div></div><div class="pn">Tower Exchange</div><div class="pd">Native stablecoin DEX aggregator for Arc. AI-powered routing finds best execution with built-in portfolio management for stablecoin traders.</div><div class="pf"><span class="tag tdex">DEX · Aggregator</span><span class="pdom">tower.exchange</span></div></a>
+      <a class="pc" data-c="dex" data-kw="arc perps perpetual futures leverage btc eth" href="https://arcperps.xyz" target="_blank" rel="noopener"><div class="pct"><div class="plog"><img src="https://www.google.com/s2/favicons?domain=arcperps.xyz&sz=128" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><span class="init">AP</span></div><div class="parr">↗</div></div><div class="pn">Arc Perps</div><div class="pd">First perpetual DEX on Arc. Trade BTC, ETH, SOL with up to 50× leverage — backed by deterministic sub-second finality.</div><div class="pf"><span class="tag tdex">Perps · Leverage</span><span class="pdom">arcperps.xyz</span></div></a>
+      <a class="pc" data-c="dex" data-kw="lunex finance stableswap amm yield vaults usdc eurc" href="https://lunex.finance" target="_blank" rel="noopener"><div class="pct"><div class="plog"><img src="https://www.google.com/s2/favicons?domain=lunex.finance&sz=128" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><span class="init">LX</span></div><div class="parr">↗</div></div><div class="pn">Lunex Finance</div><div class="pd">Curve-style StableSwap AMM with ERC-4626 yield vaults for USDC/EURC on Arc — minimal slippage, predictable yields.</div><div class="pf"><span class="tag tdex">AMM · Yield</span><span class="pdom">lunex.finance</span></div></a>
+      <a class="pc" data-c="dex" data-kw="curve finance stableswap amm pools gauge" href="https://curve.finance/dex/arc/dashboard" target="_blank" rel="noopener"><div class="pct"><div class="plog"><img src="https://www.google.com/s2/favicons?domain=curve.finance&sz=128" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><span class="init">CV</span></div><div class="parr">↗</div></div><div class="pn">Curve Finance</div><div class="pd">The legendary stablecoin AMM live on Arc. Battle-tested StableSwap pools, gauge system, and institutional stablecoin liquidity.</div><div class="pf"><span class="tag tdex">AMM · DeFi</span><span class="pdom">curve.finance/dex/arc</span></div></a>
+      <a class="pc" data-c="payments" data-kw="flowpay cross chain usdc payments bridge" href="https://flowpay-sand.vercel.app" target="_blank" rel="noopener"><div class="pct"><div class="plog"><img src="https://www.google.com/s2/favicons?domain=flowpay-sand.vercel.app&sz=128" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><span class="init">FP</span></div><div class="parr">↗</div></div><div class="pn">FlowPay</div><div class="pd">Cross-chain USDC payments via Arc App Kit. Auto-routes swap → bridge → send across Sepolia, Holesky, Linea, MegaETH, Monad.</div><div class="pf"><span class="tag tpay">Payments · Cross-chain</span><span class="pdom">flowpay-sand.vercel.app</span></div></a>
+      <a class="pc" data-c="payments" data-kw="flowfi programmable payments content credits routing" href="https://flowfi-three.vercel.app" target="_blank" rel="noopener"><div class="pct"><div class="plog"><img src="https://www.google.com/s2/favicons?domain=flowfi-three.vercel.app&sz=128" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><span class="init">FF</span></div><div class="parr">↗</div></div><div class="pn">FlowFi</div><div class="pd">Programmable payment hub on Arc. Pay-to-access content, usage-based credits, on-chain routing, and split payments.</div><div class="pf"><span class="tag tpay">Payments · Protocol</span><span class="pdom">flowfi-three.vercel.app</span></div></a>
+      <a class="pc" data-c="infra" data-kw="arcns arc name service domain .arc .circle identity" href="https://arcns-app.vercel.app" target="_blank" rel="noopener"><div class="pct"><div class="plog"><img src="https://www.google.com/s2/favicons?domain=arcns-app.vercel.app&sz=128" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><span class="init">NS</span></div><div class="parr">↗</div></div><div class="pn">ArcNS</div><div class="pd">The Arc Name Service. .arc and .circle domains paid in USDC — no gas volatility. ERC-721 NFT with reverse resolution. From $2/yr.</div><div class="pf"><span class="tag tinf">Naming · Identity</span><span class="pdom">arcns-app.vercel.app</span></div></a>
+      <a class="pc" data-c="infra" data-kw="infinityname web3 domain lifetime no renewal" href="https://infinityname.com/arc" target="_blank" rel="noopener"><div class="pct"><div class="plog"><img src="https://www.google.com/s2/favicons?domain=infinityname.com&sz=128" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><span class="init">IN</span></div><div class="parr">↗</div></div><div class="pn">InfinityName</div><div class="pd">Premium Web3 domains on Arc. Buy once, own forever — no renewal fees, no expiration. True lifetime ownership in the decentralised web.</div><div class="pf"><span class="tag tinf">Domains · Web3</span><span class="pdom">infinityname.com/arc</span></div></a>
+      <a class="pc" data-c="tools" data-kw="zkcodex wallet tracking onchain deploy airdrop analytics" href="https://zkcodex.com/onchain/deploy" target="_blank" rel="noopener"><div class="pct"><div class="plog"><img src="https://www.google.com/s2/favicons?domain=zkcodex.com&sz=128" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><span class="init">ZK</span></div><div class="parr">↗</div></div><div class="pn">zkCodex</div><div class="pd">Multi-network toolkit — wallet tracking across 35+ networks, on-chain engagement across 105+ networks, airdrop discovery, Arc deploy.</div><div class="pf"><span class="tag ttoo">Tools · Analytics</span><span class="pdom">zkcodex.com/onchain/deploy</span></div></a>
+      <a class="pc" data-c="nft" data-kw="omnihub nft marketplace collection arc mint trade" href="https://omnihub.xyz/collection/arc" target="_blank" rel="noopener"><div class="pct"><div class="plog"><img src="https://www.google.com/s2/favicons?domain=omnihub.xyz&sz=128" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><span class="init">OH</span></div><div class="parr">↗</div></div><div class="pn">OmniHub</div><div class="pd">Multi-chain NFT marketplace with a dedicated Arc collection hub. USDC-denominated listings and instant settlement on every transaction.</div><div class="pf"><span class="tag tnft">NFT · Marketplace</span><span class="pdom">omnihub.xyz/collection/arc</span></div></a>
+      <a class="pc wide" data-c="community" data-kw="arcworld community news virtual card faucet nft gaming" href="https://arcworld.io" target="_blank" rel="noopener"><div class="pct"><div class="plog"><img src="https://www.google.com/s2/favicons?domain=arcworld.io&sz=128" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><span class="init">AW</span></div><div class="parr">↗</div></div><div class="pn">ArcWorld</div><div class="pd">The Arc community super-app. Arc Virtual Card, Speed Faucet, Balance Checker, Quick Transfer, free ARC WORLD KEY NFT (10,000 supply), and ArcTimes — the independent community news platform.</div><div class="pf"><span class="tag tcom">Community · Tools</span><span class="pdom">arcworld.io</span></div></a>
+      <a class="pc" data-c="gaming" data-kw="arc crypto race web3 gaming racing tournament usdc prizes" href="https://arccryptorace.xyz" target="_blank" rel="noopener"><div class="pct"><div class="plog"><img src="https://www.google.com/s2/favicons?domain=arccryptorace.xyz&sz=128" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><span class="init">🏎</span></div><div class="parr">↗</div></div><div class="pn">Arc Crypto Race</div><div class="pd">Web3 racing tournament on Arc. Race 5-minute sessions — top 3 win daily USDC prizes from the onchain pool. Retro aesthetics, daily leaderboard.</div><div class="pf"><span class="tag tgam">Gaming · Tournament</span><span class="pdom">arccryptorace.xyz</span></div></a>
+      <div class="egrid" id="empty" style="display:none">◌ No results.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ── ARC GUIDE ─────────────────────────────────────────── -->
+<section id="guide" class="gsec">
+  <div class="wrap">
+    <div style="margin-bottom:48px" class="reveal">
+      <div class="sec-ey">Arc Guide</div>
+      <h2 class="sec-h">Learn from the <span class="gr">community</span></h2>
+      <p class="sec-p" style="margin-top:12px">Guides, threads and tutorials posted by community members building and exploring the Arc ecosystem.</p>
+    </div>
+    <div class="gfil">
+      <button class="chip on" onclick="setG('all',this)">All topics</button>
+      <button class="chip" onclick="setG('start',this)">Getting started</button>
+      <button class="chip" onclick="setG('defi',this)">DeFi</button>
+      <button class="chip" onclick="setG('trading',this)">Trading</button>
+      <button class="chip" onclick="setG('infra',this)">Infrastructure</button>
+      <button class="chip" onclick="setG('ai',this)">AI agents</button>
+      <button class="chip" onclick="setG('nft',this)">NFT</button>
+    </div>
+    <div class="ggrid" id="guide-grid">
+      <!--
+      ═══════════════════════════════════════════════════════════
+      ADD X POST: replace placeholder with:
+      <a class="xc" href="TWEET_URL" target="_blank" rel="noopener" data-topic="TOPIC">
+        <div class="xca">
+          <div class="xcav">XX</div>
+          <div class="xci"><div class="xcn">Name</div><div class="xch">@handle · date</div></div>
+          <span style="font-size:15px;opacity:.2">𝕏</span>
+        </div>
+        <div class="xxt">Tweet content preview...</div>
+        <span class="xtpc ts">Getting started</span>
+        <div class="xcft">
+          <div class="xcst"><span>♥ 140</span><span>↗ 52</span></div>
+          <a class="vx" href="TWEET_URL" target="_blank">View on X ↗</a>
+        </div>
+      </a>
+      TOPIC = start / defi / trading / infra / ai / nft
+      ═══════════════════════════════════════════════════════════
+      -->
+      <a class="xc" href="https://x.com/Web3Manish/status/2051262439862513974?s=20" target="_blank" rel="noopener" data-topic="start">
+        <div class="xca">
+          <div class="xcav" style="background:linear-gradient(135deg,#2d1b69,#7c3aed)">WM</div>
+          <div class="xci">
+            <div class="xcn">Web3 Manish</div>
+            <div class="xch">@Web3Manish · Arc Guide</div>
+          </div>
+          <span style="font-size:15px;opacity:.2;flex-shrink:0">𝕏</span>
+        </div>
+        <div class="xxt">A complete step-by-step walkthrough for getting started on the <span style="color:var(--orange)">Arc Network testnet</span> — wallet setup, faucet claim, first transaction, and everything a newcomer needs to start interacting with Arc today. 🧵</div>
+        <span class="xtpc ts">Getting started</span>
+        <div class="xcft">
+          <div class="xcst"><span>♥ —</span><span>↗ —</span></div>
+          <a class="vx" href="https://x.com/Web3Manish/status/2051262439862513974?s=20" target="_blank" rel="noopener">View on X ↗</a>
+        </div>
+      </a>
+      <a class="xc" href="https://x.com/exploraX_/status/2033448767211332001?s=20" target="_blank" rel="noopener" data-topic="defi">
+        <div class="xca">
+          <div class="xcav" style="background:linear-gradient(135deg,#0c2a1a,#059669)">EX</div>
+          <div class="xci">
+            <div class="xcn">exploraX</div>
+            <div class="xch">@exploraX_ · Arc Guide</div>
+          </div>
+          <span style="font-size:15px;opacity:.2;flex-shrink:0">𝕏</span>
+        </div>
+        <div class="xxt">Deep dive into <span style="color:var(--orange)">DeFi on Arc</span> — covering the key protocols live on testnet, how to swap and provide liquidity using USDC as gas, and why Arc's sub-second finality changes the DeFi experience entirely. A must-read thread for anyone exploring the ecosystem. 🧵</div>
+        <span class="xtpc td">DeFi</span>
+        <div class="xcft">
+          <div class="xcst"><span>♥ —</span><span>↗ —</span></div>
+          <a class="vx" href="https://x.com/exploraX_/status/2033448767211332001?s=20" target="_blank" rel="noopener">View on X ↗</a>
+        </div>
+      </a>
+      <a class="xc" href="https://x.com/Chuksdakingz/status/2043324879458476432?s=20" target="_blank" rel="noopener" data-topic="start">
+        <div class="xca">
+          <div class="xcav" style="background:linear-gradient(135deg,#1a0a2e,#7c2d12)">CK</div>
+          <div class="xci">
+            <div class="xcn">Chuksdakingz</div>
+            <div class="xch">@Chuksdakingz · Arc Guide</div>
+          </div>
+          <span style="font-size:15px;opacity:.2;flex-shrink:0">𝕏</span>
+        </div>
+        <div class="xxt">Everything you need to know to start interacting with <span style="color:var(--orange)">Arc Network testnet</span> — from adding the network to your wallet, claiming USDC from the faucet, making your first swap, and building on-chain history. A complete beginner's walkthrough. 🧵</div>
+        <span class="xtpc ts">Getting started</span>
+        <div class="xcft">
+          <div class="xcst"><span>♥ —</span><span>↗ —</span></div>
+          <a class="vx" href="https://x.com/Chuksdakingz/status/2043324879458476432?s=20" target="_blank" rel="noopener">View on X ↗</a>
+        </div>
+      </a>
+      <div class="xc ph" data-topic="start"><div class="ph-ic">𝕏</div><div class="ph-tx">Post incoming · Getting Started</div></div>
+      <div class="xc ph" data-topic="infra"><div class="ph-ic">𝕏</div><div class="ph-tx">Post incoming · Infrastructure</div></div>
+      <div class="xc ph" data-topic="ai"><div class="ph-ic">𝕏</div><div class="ph-tx">Post incoming · AI Agents</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ── CTA ──────────────────────────────────────────────── -->
+<section class="ctasec">
+  <div class="wrap">
+    <div class="sec-ey reveal">// Open call</div>
+    <h2 class="cta-h reveal">List your project.<br><span class="gr">Share your guide.</span></h2>
+    <p class="cta-p reveal">Building on Arc? Written a thread about the ecosystem?<br>Get featured and help Arc One grow.</p>
+    <div class="cta-btns reveal">
+      <a href="mailto:hello@youremail.com?subject=Arc%20One%20%E2%80%94%20Project%20Submission" class="btn-hero btn-hp mag-btn">Submit a project</a>
+      <a href="mailto:hello@youremail.com?subject=Arc%20One%20%E2%80%94%20Guide%20Post" class="btn-hero btn-ho">Submit a guide post</a>
+    </div>
+    <div class="cta-lnks reveal">
+      <a href="https://testnet.arcscan.app" target="_blank" rel="noopener" class="clink"><div><div class="clink-tt">Explorer</div><div class="clink-sb">testnet.arcscan.app</div></div></a>
+      <a href="https://faucet.circle.com" target="_blank" rel="noopener" class="clink"><div><div class="clink-tt">Faucet</div><div class="clink-sb">faucet.circle.com</div></div></a>
+      <a href="https://docs.arc.network" target="_blank" rel="noopener" class="clink"><div><div class="clink-tt">Docs</div><div class="clink-sb">docs.arc.network</div></div></a>
+      <a href="https://x.com/arc?s=20" target="_blank" rel="noopener" class="clink"><div><div class="clink-tt">Twitter</div><div class="clink-sb">@arc</div></div></a>
+    </div>
+  </div>
+</section>
+
+<!-- ── FOOTER ────────────────────────────────────────────── -->
+<div class="fwrap">
+  <div class="finner">
+    <div class="fl">
+      <div class="fm"><svg viewBox="0 0 12 12" fill="none"><polygon points="6,1.5 11,10 1,10" fill="white"/></svg></div>
+      <div><div class="fb" style="font-family:'Space Grotesk',sans-serif">Arc One</div><div class="fc">Ecosystem directory · Arc Testnet</div></div>
+    </div>
+    <div class="flinks">
+      <a href="https://docs.arc.network" target="_blank" rel="noopener" class="flnk">docs ↗</a>
+      <a href="https://testnet.arcscan.app" target="_blank" rel="noopener" class="flnk">explorer ↗</a>
+      <a href="https://faucet.circle.com" target="_blank" rel="noopener" class="flnk">faucet ↗</a>
+      <a href="https://x.com/arc?s=20" target="_blank" rel="noopener" class="flnk">@arc ↗</a>
+    </div>
+  </div>
+</div>
+
+<!-- ── COMMAND MENU ──────────────────────────────────────── -->
+<div id="cmo" onclick="if(event.target===this)closeCmd()">
+  <div class="cmp" role="dialog" aria-label="Search Arc One">
+    <div class="cmsh">
+      <span class="cmsi">⌕</span>
+      <input id="cmi" type="text" placeholder="Search projects, docs, actions…" oninput="cSearch(this.value)" autocomplete="off">
+      <span class="cmbd">ESC</span>
+    </div>
+    <div class="cmrs" id="cmrs"></div>
+    <div class="cmft">
+      <span><kbd>↑↓</kbd> Navigate</span>
+      <span><kbd>↵</kbd> Open</span>
+      <span><kbd>ESC</kbd> Close</span>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ── CANVAS ─────────────────────────── */
+(function(){
+  const c=document.getElementById('hcanvas');
+  if(!c)return;
+  const ctx=c.getContext('2d');
+  let W,H,particles=[];
+
+  function resize(){W=c.width=c.offsetWidth;H=c.height=c.offsetHeight}
+
+  class Dust{
+    constructor(){this.init(true)}
+    init(s){
+      this.x=Math.random()*W;
+      this.y=s?Math.random()*H:H+8;
+      this.vx=(Math.random()-.5)*.1;
+      this.vy=-(Math.random()*.3+.06);
+      this.r=Math.random()*1.3+.2;
+      this.a=Math.random()*.28+.04;
+      this.da=.0006+Math.random()*.0004;
+      this.type=Math.random()<.1?'ember':Math.random()<.04?'gold':'dust';
+    }
+    tick(){
+      this.x+=this.vx;this.y+=this.vy;this.a-=this.da;
+      if(this.a<=0||this.y<-8)this.init(false);
+      if(this.x<0)this.x=W;if(this.x>W)this.x=0;
+    }
+    draw(){
+      let col;
+      if(this.type==='ember') col=`rgba(247,147,26,${this.a})`;
+      else if(this.type==='gold') col=`rgba(255,214,0,${this.a})`;
+      else col=`rgba(255,255,255,${this.a*.5})`;
+      ctx.beginPath();ctx.arc(this.x,this.y,this.r,0,Math.PI*2);
+      ctx.fillStyle=col;ctx.fill();
+    }
+  }
+
+  // Rising embers from monolith base (center area)
+  class Ember{
+    constructor(){this.init()}
+    init(){
+      const spread=W*.18;
+      this.x=W/2+(Math.random()-.5)*spread;
+      this.y=H*.72+Math.random()*H*.08;
+      this.vy=-(Math.random()*.4+.18);
+      this.vx=(Math.random()-.5)*.08;
+      this.r=Math.random()*.9+.3;
+      this.a=Math.random()*.5+.1;
+      this.da=.0012+Math.random()*.001;
+    }
+    tick(){
+      this.x+=this.vx;this.y+=this.vy;this.a-=this.da;
+      if(this.a<=0||this.y<H*.1)this.init();
+    }
+    draw(){
+      ctx.beginPath();ctx.arc(this.x,this.y,this.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(247,147,26,${this.a})`;ctx.fill();
+    }
+  }
+
+  function setup(){
+    resize();
+    const n=Math.min(80,Math.floor(W*H/9000));
+    const em=Math.min(22,Math.floor(W/60));
+    particles=[
+      ...Array.from({length:n},()=>new Dust()),
+      ...Array.from({length:em},()=>new Ember())
+    ];
+  }
+
+  function frame(){
+    ctx.clearRect(0,0,W,H);
+    particles.forEach(p=>{p.tick();p.draw()});
+    requestAnimationFrame(frame);
+  }
+
+  setup();frame();
+  window.addEventListener('resize',setup);
+})();
+
+/* ── NAV SCROLL ─────────────────────── */
+const nav=document.getElementById('nav');
+window.addEventListener('scroll',()=>nav.classList.toggle('scrolled',scrollY>30),{passive:true});
+
+/* ── DIRECTIONAL LIGHT ON CARDS ─────── */
+document.querySelectorAll('.pc').forEach(c=>{
+  c.addEventListener('mousemove',e=>{
+    const r=c.getBoundingClientRect();
+    c.style.setProperty('--mx',((e.clientX-r.left)/r.width*100).toFixed(1)+'%');
+    c.style.setProperty('--my',((e.clientY-r.top)/r.height*100).toFixed(1)+'%');
+  });
+});
+
+/* ── MAGNETIC BUTTONS ────────────────── */
+document.querySelectorAll('.mag-btn').forEach(b=>{
+  b.addEventListener('mousemove',e=>{
+    const r=b.getBoundingClientRect();
+    b.style.transform=`translate(${(e.clientX-r.left-r.width/2)*.16}px,${(e.clientY-r.top-r.height/2)*.16}px)`;
+  });
+  b.addEventListener('mouseleave',()=>{
+    b.style.transition='transform .6s cubic-bezier(.34,1.56,.64,1)';
+    b.style.transform='translate(0,0)';
+    setTimeout(()=>b.style.transition='',650);
+  });
+});
+
+/* ── PROJECT FILTER ──────────────────── */
+let aC='all',sQ='';
+function setF(cat,btn){
+  aC=cat;
+  document.querySelectorAll('#chips .chip').forEach(c=>c.classList.remove('on'));
+  btn.classList.add('on');apply();
+}
+function setS(v){sQ=v.toLowerCase().trim();apply()}
+function apply(){
+  const cards=document.querySelectorAll('#grid .pc');
+  let vis=0;
+  cards.forEach(c=>{
+    const cat=c.dataset.c||'';
+    const kw=(c.dataset.kw||'')+' '+(c.querySelector('.pn')?.textContent||'').toLowerCase();
+    const ok=(aC==='all'||cat===aC)&&(!sQ||kw.includes(sQ));
+    c.classList.toggle('hide',!ok);if(ok)vis++;
+  });
+  document.getElementById('empty').style.display=vis===0?'block':'none';
+  document.getElementById('vc').textContent=vis;
+}
+
+/* ── GUIDE FILTER ────────────────────── */
+function setG(t,btn){
+  document.querySelectorAll('.gfil .chip').forEach(c=>c.classList.remove('on'));
+  btn.classList.add('on');
+  document.querySelectorAll('#guide-grid .xc').forEach(c=>{
+    const tp=c.dataset.topic||'';
+    c.style.display=(t==='all'||tp===t)?'flex':'none';
+  });
+}
+
+/* ── SCROLL REVEAL ───────────────────── */
+const io=new IntersectionObserver(e=>{e.forEach(x=>{if(x.isIntersecting){x.target.classList.add('in');io.unobserve(x.target)}})},{threshold:.08});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+
+const xcIO=new IntersectionObserver(e=>{
+  e.forEach((x,i)=>{if(x.isIntersecting){setTimeout(()=>x.target.classList.add('in'),i*55);xcIO.unobserve(x.target)}});
+},{threshold:.08});
+document.querySelectorAll('.xc').forEach(el=>xcIO.observe(el));
+
+/* ── COMMAND MENU ────────────────────── */
+const PROJ=[
+  {name:'UnitFlow Finance',s:'DEX · AI',ic:'🔄',url:'https://flowonarc.xyz'},
+  {name:'Presto DEX',s:'DEX',ic:'⚡',url:'https://prestodex-arc.vercel.app'},
+  {name:'AchSwap',s:'DEX · DeFi',ic:'🔁',url:'https://trade.achswap.app'},
+  {name:'Tower Exchange',s:'Aggregator',ic:'🏗',url:'https://tower.exchange'},
+  {name:'Arc Perps',s:'Perpetuals',ic:'📈',url:'https://arcperps.xyz'},
+  {name:'Lunex Finance',s:'AMM · Yield',ic:'💧',url:'https://lunex.finance'},
+  {name:'Curve Finance',s:'AMM',ic:'〰️',url:'https://curve.finance/dex/arc/dashboard'},
+  {name:'FlowPay',s:'Payments',ic:'💸',url:'https://flowpay-sand.vercel.app'},
+  {name:'FlowFi',s:'Payments',ic:'🔀',url:'https://flowfi-three.vercel.app'},
+  {name:'ArcNS',s:'Naming',ic:'🏷',url:'https://arcns-app.vercel.app'},
+  {name:'InfinityName',s:'Domains',ic:'∞',url:'https://infinityname.com/arc'},
+  {name:'zkCodex',s:'Tools',ic:'🔧',url:'https://zkcodex.com/onchain/deploy'},
+  {name:'OmniHub',s:'NFT',ic:'🖼',url:'https://omnihub.xyz/collection/arc'},
+  {name:'ArcWorld',s:'Community',ic:'🌍',url:'https://arcworld.io'},
+  {name:'Arc Crypto Race',s:'Gaming',ic:'🏎',url:'https://arccryptorace.xyz'},
+];
+const QK=[
+  {name:'Block Explorer',s:'testnet.arcscan.app',ic:'🔍',url:'https://testnet.arcscan.app'},
+  {name:'Testnet Faucet',s:'faucet.circle.com',ic:'🚰',url:'https://faucet.circle.com'},
+  {name:'Documentation',s:'docs.arc.network',ic:'📖',url:'https://docs.arc.network'},
+  {name:'Arc on Twitter',s:'@arc',ic:'𝕏',url:'https://x.com/arc?s=20'},
+];
+let cmdOpen=false;
+function openCmd(){cmdOpen=true;document.getElementById('cmo').classList.add('open');setTimeout(()=>document.getElementById('cmi').focus(),60);rCmd('')}
+function closeCmd(){cmdOpen=false;document.getElementById('cmo').classList.remove('open');document.getElementById('cmi').value=''}
+function cSearch(v){rCmd(v.toLowerCase().trim())}
+function row(item){return`<a class="cmi-row" href="${item.url}" target="_blank" rel="noopener"><div class="cmi-ic">${item.ic}</div><div><div class="cmi-n">${item.name}</div><div class="cmi-s">${item.s}</div></div><div class="cmi-ar">↗</div></a>`}
+function rCmd(q){
+  const rs=document.getElementById('cmrs');
+  const fp=q?PROJ.filter(p=>p.name.toLowerCase().includes(q)||p.s.toLowerCase().includes(q)):PROJ;
+  let h='';
+  if(!q){h+='<div class="cmsl">Quick actions</div>'+QK.map(row).join('')+'<div class="cmsl">All projects</div>'}
+  h+=fp.length?fp.map(row).join(''):`<div style="padding:24px;text-align:center;font-family:JetBrains Mono,monospace;font-size:11px;color:var(--dim)">No results</div>`;
+  rs.innerHTML=h;
+}
+document.addEventListener('keydown',e=>{
+  if((e.metaKey||e.ctrlKey)&&e.key==='k'){e.preventDefault();cmdOpen?closeCmd():openCmd()}
+  if(e.key==='Escape'&&cmdOpen)closeCmd();
+});
+
+/* ── LOGO FALLBACK ───────────────────── */
+document.querySelectorAll('.plog img').forEach(img=>{
+  img.addEventListener('error',()=>{
+    img.style.display='none';
+    const fb=img.nextElementSibling;
+    if(fb){fb.style.display='flex';fb.style.alignItems='center';fb.style.justifyContent='center';fb.style.width='100%';fb.style.height='100%'}
+  });
+});
+</script>
+</body>
+</html>
