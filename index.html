@@ -410,7 +410,7 @@ body::after{
     <button class="nl" onclick="document.getElementById('guide').scrollIntoView({behavior:'smooth'})">Arc Guide</button>
   </div>
   <div class="nav-r">
-    <a href="https://x.com/arc?s=20" target="_blank" rel="noopener" class="nl" style="text-decoration:none">Twitter</a>
+    <a href="https://x.com/arcdirectory?s=20" target="_blank" rel="noopener" class="nl" style="text-decoration:none">Twitter</a>
 <a href="https://docs.arc.network" target="_blank" rel="noopener" class="btn-doc">Docs ↗</a>
   </div>
 </nav>
@@ -778,25 +778,20 @@ body::after{
       <a href="https://testnet.arcscan.app" target="_blank" rel="noopener" class="clink"><div><div class="clink-tt">Explorer</div><div class="clink-sb">testnet.arcscan.app</div></div></a>
       <a href="https://faucet.circle.com" target="_blank" rel="noopener" class="clink"><div><div class="clink-tt">Faucet</div><div class="clink-sb">faucet.circle.com</div></div></a>
       <a href="https://docs.arc.network" target="_blank" rel="noopener" class="clink"><div><div class="clink-tt">Docs</div><div class="clink-sb">docs.arc.network</div></div></a>
-      <a href="https://x.com/arc?s=20" target="_blank" rel="noopener" class="clink"><div><div class="clink-tt">Twitter</div><div class="clink-sb">@arc</div></div></a>
+      <a href="https://x.com/arcdirectory?s=20" target="_blank" rel="noopener" class="clink"><div><div class="clink-tt">Twitter</div><div class="clink-sb">@arcdirectory</div></div></a>
     </div>
   </div>
 </section>
 
 <!-- ── FOOTER ────────────────────────────────────────────── -->
 <div class="fwrap">
-  <div class="finner">
-    <div class="fl">
+  <div class="finner" style="justify-content:center;flex-direction:column;align-items:center;gap:10px;text-align:center">
+    <div class="fl" style="justify-content:center">
       <div class="fm"><svg viewBox="0 0 12 12" fill="none"><polygon points="6,1.5 11,10 1,10" fill="white"/></svg></div>
-      <div><div class="fb" style="font-family:'Space Grotesk',sans-serif">Arc One</div><div class="fc">© 2026 Arc One · Ecosystem directory · Arc Testnet</div>
-        <div class="fc" style="margin-top:2px">Last updated: May 2026</div></div>
+      <div class="fb" style="font-family:'Space Grotesk',sans-serif">Arc One</div>
     </div>
-    <div class="flinks">
-      <a href="https://docs.arc.network" target="_blank" rel="noopener" class="flnk">docs ↗</a>
-      <a href="https://testnet.arcscan.app" target="_blank" rel="noopener" class="flnk">explorer ↗</a>
-      <a href="https://faucet.circle.com" target="_blank" rel="noopener" class="flnk">faucet ↗</a>
-      <a href="https://x.com/arc?s=20" target="_blank" rel="noopener" class="flnk">@arc ↗</a>
-    </div>
+    <div class="fc">© 2026 Arc One · Ecosystem directory · Arc Testnet</div>
+    <div class="fc" style="margin-top:-4px">Last updated: May 2026</div>
   </div>
 </div>
 
@@ -985,7 +980,7 @@ const QK=[
   {name:'Block Explorer',s:'testnet.arcscan.app',ic:'🔍',url:'https://testnet.arcscan.app'},
   {name:'Testnet Faucet',s:'faucet.circle.com',ic:'🚰',url:'https://faucet.circle.com'},
   {name:'Documentation',s:'docs.arc.network',ic:'📖',url:'https://docs.arc.network'},
-  {name:'Arc on Twitter',s:'@arc',ic:'𝕏',url:'https://x.com/arc?s=20'},
+  {name:'Arc on Twitter',s:'@arc',ic:'𝕏',url:'https://x.com/arcdirectory?s=20'},
 ];
 let cmdOpen=false;
 function openCmd(){cmdOpen=true;document.getElementById('cmo').classList.add('open');setTimeout(()=>document.getElementById('cmi').focus(),60);rCmd('')}
