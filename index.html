@@ -253,11 +253,13 @@ body::after{
 .pc[data-c="nft"]{--cc:rgba(139,92,246,0.6);--cb:rgba(139,92,246,0.28);--cg:rgba(139,92,246,0.18)}
 .pc[data-c="gaming"]{--cc:rgba(220,38,38,0.6);--cb:rgba(220,38,38,0.28);--cg:rgba(220,38,38,0.18)}
 .pc[data-c="community"]{--cc:rgba(56,189,248,0.6);--cb:rgba(56,189,248,0.28);--cg:rgba(56,189,248,0.18)}
+.pc[data-c="ai"]{--cc:rgba(192,132,252,0.6);--cb:rgba(192,132,252,0.28);--cg:rgba(192,132,252,0.18)}
 .pc:nth-child(1){animation-delay:.04s}.pc:nth-child(2){animation-delay:.08s}.pc:nth-child(3){animation-delay:.12s}
 .pc:nth-child(4){animation-delay:.16s}.pc:nth-child(5){animation-delay:.20s}.pc:nth-child(6){animation-delay:.24s}
 .pc:nth-child(7){animation-delay:.28s}.pc:nth-child(8){animation-delay:.32s}.pc:nth-child(9){animation-delay:.36s}
 .pc:nth-child(10){animation-delay:.40s}.pc:nth-child(11){animation-delay:.44s}.pc:nth-child(12){animation-delay:.48s}
 .pc:nth-child(13){animation-delay:.52s}.pc:nth-child(14){animation-delay:.56s}.pc:nth-child(15){animation-delay:.60s}
+.pc:nth-child(16){animation-delay:.64s}.pc:nth-child(17){animation-delay:.68s}
 .pc.hide{display:none!important}
 .pct{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px}
 .plog{width:44px;height:44px;border-radius:11px;overflow:hidden;background:rgba(255,255,255,0.04);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0}
@@ -277,6 +279,7 @@ body::after{
 .tnft{color:#a78bfa;border-color:rgba(167,139,250,.25);background:rgba(167,139,250,.07)}
 .tgam{color:#f87171;border-color:rgba(248,113,113,.25);background:rgba(248,113,113,.07)}
 .tcom{color:#38bdf8;border-color:rgba(56,189,248,.25);background:rgba(56,189,248,.07)}
+.tai{color:#c084fc;border-color:rgba(192,132,252,.25);background:rgba(192,132,252,.07)}
 .pdom{font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--dim);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;max-width:54%}
 .egrid{grid-column:1/-1;text-align:center;padding:70px 0;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--dim)}
 
@@ -617,7 +620,7 @@ body::after{
 <!-- ── STATS BAR ───────────────────────────────────────── -->
 <div class="stats-bar">
   <div class="sbi" style="display:grid">
-    <div class="sbc"><div class="sbc-v grad">15</div><div class="sbc-l">Projects live</div></div>
+    <div class="sbc"><div class="sbc-v grad">17</div><div class="sbc-l">Projects live</div></div>
     <div class="sbc"><div class="sbc-v grad">&lt;1s</div><div class="sbc-l">Finality</div></div>
     <div class="sbc"><div class="sbc-v grad">$0.01</div><div class="sbc-l">Base fee</div></div>
     <div class="sbc"><div class="sbc-v grad">80+</div><div class="sbc-l">Partners</div></div>
@@ -643,13 +646,14 @@ body::after{
         <button class="chip" onclick="setF('community',this)">Community</button>
         <button class="chip" onclick="setF('gaming',this)">Gaming</button>
         <button class="chip" onclick="setF('nft',this)">NFT</button>
+        <button class="chip" onclick="setF('ai',this)">AI</button>
       </div>
       <div class="sw">
         <span class="si">⌕</span>
         <input class="sinp" type="text" placeholder="Search…" oninput="setS(this.value)" autocomplete="off" aria-label="Search projects" id="ps">
       </div>
     </div>
-    <div class="ctxt"><span id="vc">15</span> projects</div>
+    <div class="ctxt"><span id="vc">17</span> projects</div>
     <div class="pgrid" id="grid">
       <a class="pc wide" data-c="dex" data-kw="unitflow finance dex liquidity ai agentic usdc" href="https://flowonarc.xyz" target="_blank" rel="noopener"><div class="pct"><div class="plog"><img src="https://www.google.com/s2/favicons?domain=unitflow.finance&sz=128" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><span class="init">UF</span></div><div class="parr">↗</div></div><div class="pn">UnitFlow Finance</div><div class="pd">The emerging liquidity hub of Arc. A full DEX with AI-driven automation for agentic commerce — trustless USDC agent pools, ERC-8004 compatible trading infrastructure, and reflection token routing for autonomous agents.</div><div class="pf"><span class="tag tdex">DEX · AI Agents</span><span class="pdom">flowonarc.xyz · @UnitFlowFinance</span></div></a>
       <a class="pc" data-c="dex" data-kw="presto dex swap pool bridge nft" href="https://prestodex-arc.vercel.app" target="_blank" rel="noopener"><div class="pct"><div class="plog"><img src="https://www.google.com/s2/favicons?domain=prestodex-arc.vercel.app&sz=128" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><span class="init">PR</span></div><div class="parr">↗</div></div><div class="pn">Presto DEX</div><div class="pd">All-in-one DEX on Arc. Instant swaps, LP pools, CCTP V2 bridge, token & NFT deployment, and full portfolio tracking from one sidebar.</div><div class="pf"><span class="tag tdex">DEX</span><span class="pdom">prestodex-arc.vercel.app</span></div></a>
@@ -666,6 +670,12 @@ body::after{
       <a class="pc" data-c="nft" data-kw="omnihub nft marketplace collection arc mint trade" href="https://omnihub.xyz/collection/arc" target="_blank" rel="noopener"><div class="pct"><div class="plog"><img src="https://www.google.com/s2/favicons?domain=omnihub.xyz&sz=128" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><span class="init">OH</span></div><div class="parr">↗</div></div><div class="pn">OmniHub</div><div class="pd">Multi-chain NFT marketplace with a dedicated Arc collection hub. USDC-denominated listings and instant settlement on every transaction.</div><div class="pf"><span class="tag tnft">NFT · Marketplace</span><span class="pdom">omnihub.xyz/collection/arc</span></div></a>
       <a class="pc wide" data-c="community" data-kw="arcworld community news virtual card faucet nft gaming" href="https://arcworld.io" target="_blank" rel="noopener"><div class="pct"><div class="plog"><img src="https://www.google.com/s2/favicons?domain=arcworld.io&sz=128" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><span class="init">AW</span></div><div class="parr">↗</div></div><div class="pn">ArcWorld</div><div class="pd">The Arc community super-app. Arc Virtual Card, Speed Faucet, Balance Checker, Quick Transfer, free ARC WORLD KEY NFT (10,000 supply), and ArcTimes — the independent community news platform.</div><div class="pf"><span class="tag tcom">Community · Tools</span><span class="pdom">arcworld.io</span></div></a>
       <a class="pc" data-c="gaming" data-kw="arc crypto race web3 gaming racing tournament usdc prizes" href="https://arccryptorace.xyz" target="_blank" rel="noopener"><div class="pct"><div class="plog"><img src="https://www.google.com/s2/favicons?domain=arccryptorace.xyz&sz=128" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><span class="init">🏎</span></div><div class="parr">↗</div></div><div class="pn">Arc Crypto Race</div><div class="pd">Web3 racing tournament on Arc. Race 5-minute sessions — top 3 win daily USDC prizes from the onchain pool. Retro aesthetics, daily leaderboard.</div><div class="pf"><span class="tag tgam">Gaming · Tournament</span><span class="pdom">arccryptorace.xyz</span></div></a>
+
+      <!-- 16 Arcana -->
+      <a class="pc" data-c="ai" data-kw="arcana ai trading agent perpetual futures hermes autonomous" href="https://arcana.zone/" target="_blank" rel="noopener"><div class="pct"><div class="plog"><img src="https://www.google.com/s2/favicons?domain=arcana.zone&sz=128" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><span class="init">AR</span></div><div class="parr">↗</div></div><div class="pn">Arcana</div><div class="pd">Autonomous AI trading agent for perpetual futures on Arc. Powered by Hermes 3 — the hidden intelligence of Arc that watches the market, reasons, and executes trades without human intervention.</div><div class="pf"><span class="tag tai">AI · Trading</span><span class="pdom">arcana.zone · @arcanaweb</span></div></a>
+
+      <!-- 17 ArcGrade -->
+      <a class="pc" data-c="ai" data-kw="arcgrade ai reputation trust score wallet onchain activity" href="https://arc-grade.vercel.app/" target="_blank" rel="noopener"><div class="pct"><div class="plog"><img src="https://www.google.com/s2/favicons?domain=arc-grade.vercel.app&sz=128" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><span class="init">AG</span></div><div class="parr">↗</div></div><div class="pn">ArcGrade</div><div class="pd">AI-powered on-chain reputation for Arc wallets. Every wallet earns a trust score based on on-chain activity — no middleman, no bias. Score stored on-chain forever. Includes leaderboard, challenges, and a browser extension.</div><div class="pf"><span class="tag tai">AI · Reputation</span><span class="pdom">arc-grade.vercel.app · @arcgrade_</span></div></a>
       <div class="egrid" id="empty" style="display:none">◌ No results.</div>
     </div>
   </div>
@@ -975,6 +985,8 @@ const PROJ=[
   {name:'OmniHub',s:'NFT',ic:'🖼',url:'https://omnihub.xyz/collection/arc'},
   {name:'ArcWorld',s:'Community',ic:'🌍',url:'https://arcworld.io'},
   {name:'Arc Crypto Race',s:'Gaming',ic:'🏎',url:'https://arccryptorace.xyz'},
+  {name:'Arcana',s:'AI · Trading',ic:'🤖',url:'https://arcana.zone/'},
+  {name:'ArcGrade',s:'AI · Reputation',ic:'⭐',url:'https://arc-grade.vercel.app/'},
 ];
 const QK=[
   {name:'Block Explorer',s:'testnet.arcscan.app',ic:'🔍',url:'https://testnet.arcscan.app'},
